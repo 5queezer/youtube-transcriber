@@ -1,0 +1,6 @@
+*.mp4
+*.m4a
+*.webm
+*.yaml
+*.txt
+!requirements.txt

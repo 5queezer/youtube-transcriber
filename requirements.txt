@@ -1,0 +1,8 @@
+pytube3
+langchain
+click
+openai-whisper
+transformers
+nltk
+PyYAML
+yt-dlp
