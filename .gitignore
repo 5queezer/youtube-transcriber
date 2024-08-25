@@ -3,4 +3,5 @@
 *.webm
 *.yaml
 *.txt
+*.srt
 !requirements.txt
