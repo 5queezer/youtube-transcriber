@@ -38,7 +38,7 @@ def download_youtube_video(video_url):
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        result = ydl.download([video_url])
+        assert ydl.download([video_url]) == 0
         info_dict = ydl.extract_info(video_url, download=False)
         return ydl.prepare_filename(info_dict)
 
@@ -49,7 +49,7 @@ def extract_video_metadata(video_url, download_path):
         return None
 
     ydl_opts = {
-        'skip_download': True,  # We just want to extract metadata without downloading
+        'skip_download': True,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

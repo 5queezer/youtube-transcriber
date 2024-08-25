@@ -1,8 +1,10 @@
 import os
+import sys
+
 import click
 from transcribe.youtube_downloader import download_youtube_video, extract_video_metadata, check_ffmpeg
 from transcribe.transcriber import transcribe_video, transcribe_video_to_srt
-from transcribe.translator import translate_text
+from transcribe.translator import translate_text, OpusMTTranslator, GPTTranslator
 from transcribe.summarizer import summarize_text
 from transcribe.utils import change_file_extension
 
@@ -16,7 +18,9 @@ def cli():
 @click.argument('video_url')
 @click.option('--summarize', is_flag=True, help="Summarize the transcription")
 @click.option('--translate', default=None, help="Translate the transcription to the specified language (e.g., 'es' for Spanish)")
-def transcribe_and_summarize(video_url, summarize, translate):
+@click.option('--translator', default="opus", type=click.Choice(['opus', 'chatgpt']), help="Choose the translator: 'opus' for Opus MT, 'chatgpt' for OpenAI GPT")
+@click.option('--openai-api-key', default=None, help="Your OpenAI API key (required if using chatgpt)")
+def transcribe_and_summarize(video_url, summarize, translate, translator, openai_api_key):
     """
     Download, transcribe, and optionally summarize and/or translate a YouTube video.
     """
@@ -25,7 +29,7 @@ def transcribe_and_summarize(video_url, summarize, translate):
     path = download_youtube_video(video_url)
 
     if path is None:
-        print("Video download failed; exiting.")
+        print("Video download failed; exiting.", file=sys.stderr)
         return
 
     # Extract and save video metadata
@@ -45,8 +49,15 @@ def transcribe_and_summarize(video_url, summarize, translate):
     transcription = transcribe_video(path)
 
     if translate and transcription:
-        # Translate the transcription
-        translated_text = translate_text(transcription, translate)
+        if translator == "chatgpt":
+            if not openai_api_key:
+                print("ERROR: OpenAI API key is required when using chatgpt translator.", file=sys.stderr)
+                return
+            translator_instance = GPTTranslator(api_key=openai_api_key)
+        else:
+            translator_instance = OpusMTTranslator()
+
+        translated_text = translate_text(transcription, translate, translator_instance)
         if translated_text:
             translated_file_name = change_file_extension(path, f'_{translate}.txt')
             with open(translated_file_name, 'w') as file:
