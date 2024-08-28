@@ -1,5 +1,6 @@
 import os
-
+import re
+from pathlib import Path
 from yt_dlp import YoutubeDL
 import yaml
 from datetime import datetime
@@ -22,9 +23,29 @@ def check_ffmpeg():
     return ffmpeg_path
 
 
+def sanitize_title(title):
+    """Sanitize a string to be used as a safe filename."""
+    sanitized_title = re.sub(r'[^a-zA-Z0-9-_]+', '_', title)
+    sanitized_title = sanitized_title.strip('_')
+    sanitized_title = Path(sanitized_title).stem
+    return sanitized_title
+
+
 def download_youtube_video(video_url):
     ffmpeg_path = check_ffmpeg()
 
+    # Extract video information to get the title
+    ydl_opts_info = {
+        'format': 'bestaudio/best',
+        'ffmpeg_location': ffmpeg_path,
+        'noplaylist': True,
+    }
+
+    with YoutubeDL(ydl_opts_info) as ydl:
+        info_dict = ydl.extract_info(video_url, download=False)
+        video_title = sanitize_title(info_dict.get('title', 'downloaded_video'))
+
+    # Set the output template to use the sanitized video title
     ydl_opts = {
         'format': 'bestaudio/best',
         'postprocessors': [{
@@ -32,14 +53,13 @@ def download_youtube_video(video_url):
             'preferredcodec': 'aac',
             'preferredquality': '192',
         }],
-        'outtmpl': 'downloaded_video.%(ext)s',
+        'outtmpl': f'{video_title}.%(ext)s',
         'ffmpeg_location': ffmpeg_path,
         'keepvideo': True
     }
 
     with YoutubeDL(ydl_opts) as ydl:
         assert ydl.download([video_url]) == 0
-        info_dict = ydl.extract_info(video_url, download=False)
         return ydl.prepare_filename(info_dict)
 
 
