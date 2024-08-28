@@ -8,12 +8,23 @@ def summarize_text(text):
         print("No valid text provided; skipping summarization.")
         return None
 
+    # Download the NLTK 'punkt' data if not already available
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt')
+
+    # Download the NLTK 'punkt_tab' data if not already available
+    try:
+        nltk.data.find('tokenizers/punkt_tab')
+    except LookupError:
+        nltk.download('punkt_tab')
+
     model_name = "sshleifer/distilbart-cnn-12-6"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     summarizer = pipeline("summarization", model=model_name)
 
     max_input_length = tokenizer.model_max_length
-    nltk.download('punkt')
     sentences = sent_tokenize(text)
 
     # Split text into chunks if it exceeds the model's maximum input length
