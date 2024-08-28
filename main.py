@@ -1,6 +1,5 @@
 import os
 import sys
-
 import click
 from transcribe.youtube_downloader import download_youtube_video, extract_video_metadata, check_ffmpeg
 from transcribe.transcriber import transcribe_video, transcribe_video_to_srt
@@ -9,21 +8,62 @@ from transcribe.summarizer import summarize_text
 from transcribe.utils import change_file_extension
 
 
-@click.group()
-def cli():
-    pass
+class TranscriptionWizard:
+    def __init__(self):
+        self.video_url = None
+        self.summarize = False
+        self.translate = None
+        self.translator = "opus"
+        self.openai_api_key = None
+
+    def run(self):
+        self.prompt_for_video_url()
+        self.prompt_for_summarize()
+        self.prompt_for_translation()
+
+    def prompt_for_video_url(self):
+        self.video_url = click.prompt("Please enter the YouTube video URL")
+
+    def prompt_for_summarize(self):
+        self.summarize = click.confirm("Do you want to summarize the transcription?", default=True)
+
+    def prompt_for_translation(self):
+        self.translate = click.prompt("Enter the language code to translate the transcription (or leave blank to skip translation)", default="", show_default=False)
+        if self.translate:
+            self.translator = click.prompt("Choose the translator", type=click.Choice(['opus', 'chatgpt']), default="opus")
+            if self.translator == "chatgpt":
+                self.openai_api_key = click.prompt("Enter your OpenAI API key", hide_input=True)
+
+
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    if ctx.invoked_subcommand is None:
+        # No subcommand was provided, run the wizard by default
+        wizard_instance = TranscriptionWizard()
+        wizard_instance.run()
+        ctx.invoke(transcribe_and_summarize,
+                   video_url=wizard_instance.video_url,
+                   summarize=wizard_instance.summarize,
+                   translate=wizard_instance.translate,
+                   translator=wizard_instance.translator,
+                   openai_api_key=wizard_instance.openai_api_key)
 
 
 @click.command()
-@click.argument('video_url')
-@click.option('--summarize', is_flag=True, help="Summarize the transcription")
-@click.option('--translate', default=None, help="Translate the transcription to the specified language (e.g., 'es' for Spanish)")
-@click.option('--translator', default="opus", type=click.Choice(['opus', 'chatgpt']), help="Choose the translator: 'opus' for Opus MT, 'chatgpt' for OpenAI GPT")
-@click.option('--openai-api-key', default=None, help="Your OpenAI API key (required if using chatgpt)")
+@click.argument('video_url', required=False)
+@click.option('--summarize', is_flag=True, default=False)
+@click.option('--translate', default=None)
+@click.option('--translator', default="opus")
+@click.option('--openai-api-key', default=None)
 def transcribe_and_summarize(video_url, summarize, translate, translator, openai_api_key):
     """
     Download, transcribe, and optionally summarize and/or translate a YouTube video.
     """
+
+    if not video_url:
+        print("ERROR: Video URL is required.", file=sys.stderr)
+        return
 
     # Download the YouTube video
     path = download_youtube_video(video_url)
