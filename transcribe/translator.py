@@ -1,7 +1,7 @@
-import openai
-
-from transformers import pipeline, MarianMTModel, MarianTokenizer
 from abc import ABC, abstractmethod
+
+import openai
+from transformers import pipeline, MarianMTModel, MarianTokenizer
 
 
 class Translator(ABC):

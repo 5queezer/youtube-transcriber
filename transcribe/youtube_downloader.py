@@ -1,10 +1,12 @@
 import os
 import re
-from pathlib import Path
-from yt_dlp import YoutubeDL
-import yaml
-from datetime import datetime
 import shutil
+from datetime import datetime
+from pathlib import Path
+
+import yaml
+from yt_dlp import YoutubeDL
+
 from .utils import change_file_extension
 
 

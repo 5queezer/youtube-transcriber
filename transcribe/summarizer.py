@@ -1,6 +1,6 @@
-from transformers import pipeline, AutoTokenizer
 import nltk
 from nltk.tokenize import sent_tokenize
+from transformers import pipeline, AutoTokenizer
 
 
 def summarize_text(text):
