@@ -2,7 +2,6 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from transformers import pipeline, AutoTokenizer
 
-
 def summarize_text(text):
     if text is None:
         print("No valid text provided; skipping summarization.")
@@ -13,8 +12,6 @@ def summarize_text(text):
         nltk.data.find('tokenizers/punkt')
     except LookupError:
         nltk.download('punkt')
-
-    # Download the NLTK 'punkt_tab' data if not already available
     try:
         nltk.data.find('tokenizers/punkt_tab')
     except LookupError:
@@ -46,8 +43,16 @@ def summarize_text(text):
         text_chunks.append(' '.join(current_chunk))
 
     # Summarize each chunk and combine the summaries
-    summaries = [summarizer(chunk, max_length=150, min_length=30, do_sample=False)[0]['summary_text'] for chunk in
-                 text_chunks]
+    summaries = [
+        summarizer(
+            chunk,
+            max_length=150,
+            min_length=30,
+            do_sample=False,
+            clean_up_tokenization_spaces=True  # To avoid the deprecation warning
+        )[0]['summary_text']
+        for chunk in text_chunks
+    ]
     final_summary = ' '.join(summaries)
 
     return final_summary

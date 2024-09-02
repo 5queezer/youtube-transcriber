@@ -53,13 +53,10 @@ def transcribe_and_summarize(video_url, summarize, translate, translator, openai
     if path is None:
         console.print("[bold red]Video download failed; exiting.[/bold red]", file=sys.stderr)
         return
-    console.print(f"[green]Video downloaded successfully to {path}[/green]")
 
     # Extract and save video metadata
     console.print("[yellow]Extracting video metadata...[/yellow]")
-    yaml_file_name = extract_video_metadata(video_url, path)
-    if yaml_file_name:
-        console.print(f"[green]Metadata saved to {yaml_file_name}[/green]")
+    extract_video_metadata(video_url, path)
 
     # Transcribe the downloaded video with timestamps and save to SRT
     console.print("[yellow]Transcribing the video...[/yellow]")
