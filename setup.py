@@ -14,7 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/5queezer/youtube-transcriber",
     packages=find_packages(include=["transcribe", "transcribe.*"]),
-    py_modules=["main"],
+    py_modules=["transcribe.main"],
     install_requires=[
         "langchain",
         "click",
@@ -29,7 +29,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "youtube-transcriber=main:main"
+            "youtube-transcriber=transcribe.main:cli"
         ]
     },
     classifiers=[
